@@ -14,27 +14,23 @@ public:
         // DO NOT write int main() function
         if(root==NULL)
             return false; 
-        if(root->val == sum && isleaf(root))
-            return true;
-        return(addchild(root, root->val, sum));
+        return(addchild(root, 0, sum));
 
     }
     
     bool addchild(TreeNode *root, int accum, int sum)
     {       
+        int acc = accum  + root->val;
+        if(acc==sum && isleaf(root))
+            return true;
         if(root->left != NULL){   
-            int tleft = root->left->val + accum;
-            if(tleft == sum && isleaf(root->left))
-                return true;
-            addchild(root->left, tleft, sum);
+            addchild(root->left, acc, sum);
         }
         
         if(root->right != NULL){   
-            int tright = root->right->val + accum;
-            if(tright == sum &&isleaf(root->right))
-                return true;
-            addchild(root->right, tright, sum);
+            addchild(root->right, acc, sum);
         }
+        return false;
         
     }
     
