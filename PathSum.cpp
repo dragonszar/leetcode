@@ -24,11 +24,11 @@ public:
         if(acc==sum && isleaf(root))
             return true;
         if(root->left != NULL){   
-            addchild(root->left, acc, sum);
+            return addchild(root->left, acc, sum);
         }
         
         if(root->right != NULL){   
-            addchild(root->right, acc, sum);
+            return addchild(root->right, acc, sum);
         }
         return false;
         
