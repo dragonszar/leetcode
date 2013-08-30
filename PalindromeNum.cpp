@@ -5,21 +5,42 @@ public:
         // DO NOT write int main() function
         int ndgt = 0;
         int cur = x;
+        
+        //Handle minus number case
+        if(cur<0)
+            return false;
+        
         while(cur>0)
         {
             ndgt++;
             cur = cur/10;
         }
 
-        if(ndgt==1)
+        if(ndgt==1) //Handle 1 dgit case
             return true;
         for(int i=1; i <= (ndgt+1)/2; i++)
         {
-            if(((x/(ndgt-i))%10) != ((x%10)/(10^(i-1))))
+            if(
+                (
+                    ( x / pow(10, (ndgt-i)) ) % 10
+                ) != (
+                    (x%10) / (10^(i-1))
+                )
+            )
                 return false; 
         }
         return true;
     }
     
+    //"^" is not power sign
+    int pow(int a, int b)
+    {
+        int rst = 1;
+        for(int i=0; i < b; i++)
+        {
+            rst = rst * a;
+        }
+        return rst;
+    }
     
 };
