@@ -11,7 +11,8 @@ public:
             cur = cur/10;
         }
 
-        
+        if(ndgt==1)
+            return true;
         for(int i=1; i <= (ndgt+1)/2; i++)
         {
             if(((x/(ndgt-i))%10) != ((x%10)/(10^(i-1))))
