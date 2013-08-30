@@ -24,7 +24,7 @@ public:
                 (
                     ( x / pow(10, (ndgt-i)) ) % 10
                 ) != (
-                    (x%10) / (10^(i-1))
+                    (x % pow(10, i)) / pow(10, (i-1)) //Watch the cao gao carefully
                 )
             )
                 return false; 
