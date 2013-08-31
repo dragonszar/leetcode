@@ -1,3 +1,5 @@
+
+
 class Solution {
 public:
     bool isValid(string s) {
@@ -8,14 +10,22 @@ public:
         stack<char> sck;
         sck.push(s[0]);
         int cur = 1;
-        while((!sck.empty()) && cur<s.size())
+        while(cur<s.size())
         {
             char curchar = s[cur];
             if(isright(curchar))
             {
-                if(!ispair(sck.top(),curchar))
+
+    			if(sck.empty())	//Need to return false if the right parenthese is entered when sck is empty, we need to this case on the top because the second case need the stack to be not empty
+					return false;
+
+				if(!ispair(sck.top(),curchar))	//Need to check if sck is empty before peek, or the empty stack has been checked and returned if empty
+				{
                     return false;
-                sck.pop();
+				}
+
+				if(!sck.empty())	//Need to pop in the valid case, cannot be on top of the second case
+					sck.pop();
             }
             else if(isleft(curchar))
                 sck.push(curchar);
@@ -35,7 +45,7 @@ public:
     }
     bool isright(char c)
     {
-        if(c=='}'||c=='['||c==')')
+        if(c=='}'||c==']'||c==')')
             return true;
         return false;
     }
