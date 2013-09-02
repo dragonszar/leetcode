@@ -5,22 +5,20 @@ public:
         // DO NOT write int main() function
         int sm, lg;
         range(num, sm, lg);
-        int shift = 0;
-        if(sm < 0)
-            shift = (-1) * sm;
+
         int i = 0; 
-        vector<int> mp(lg-sm+1, -1);
+        map<int, int> mp;   //Need to use map instead of the array due to memory issue, map is automatically sorted when inserting.
         for(vector<int>::iterator it = num.begin(); it!=num.end(); ++it, i++)
         {
-            mp[shift+(*it)] = i;
+            mp[(*it)] = i;
         }
         int longest = 0;
         int len = 0;
-        for(vector<int>::iterator it = mp.begin(); it!=mp.end(); it++)
+        for(map<int, int>::iterator it = next(mp.begin()); it!=mp.end(); it++)
         {  
-            if(*it == -1)
+            if(prev(it)->first != it->first -1) //map's iterator need to use first and second
             {
-                len = 0;
+                len = 1;
             }else{
                 len++;
             }
