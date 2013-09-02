@@ -1,3 +1,12 @@
+// ConsoleApplication4.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+#include <vector>
+#include <map>
+using namespace std;
+
 class Solution {
 public:
     int longestConsecutive(vector<int> &num) {
@@ -12,6 +21,10 @@ public:
         {
             mp[(*it)] = i;
         }
+        if(num.size()==1)
+            return 1;
+        if(num.size()==0)
+            return 0;
         int longest = 0;
         int len = 0;
         for(map<int, int>::iterator it = next(mp.begin()); it!=mp.end(); it++)
@@ -41,3 +54,13 @@ public:
         }
     }
 };
+int _tmain(int argc, _TCHAR* argv[])
+{
+	int testarr[] = {-10, -9, -8, 0, 4, 6, 7,8,9,10};
+	vector<int> test( testarr, testarr+sizeof(testarr)/sizeof(int));
+	Solution s;
+	
+	cout<<s.longestConsecutive(test);
+	return 0;
+}
+
