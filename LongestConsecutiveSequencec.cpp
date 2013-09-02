@@ -21,13 +21,13 @@ public:
         {
             mp[(*it)] = i;
         }
-        if(num.size()==1)
+        if(mp.size()==1)
             return 1;
-        if(num.size()==0)
+        if(mp.size()==0)
             return 0;
-        int longest = 0;
-        int len = 0;
-        for(map<int, int>::iterator it = next(mp.begin()); it!=mp.end(); it++)
+        int longest = 1;
+        int len = 1;
+        for(map<int, int>::iterator it = next(mp.begin()); it!=mp.end(); it++)  //Only the dynamic accessor implemented operator+
         {  
             if(prev(it)->first != it->first -1) //map's iterator need to use first and second
             {
@@ -56,7 +56,7 @@ public:
 };
 int _tmain(int argc, _TCHAR* argv[])
 {
-	int testarr[] = {-10, -9, -8, 0, 4, 6, 7,8,9,10};
+	int testarr[] = {0,-1};
 	vector<int> test( testarr, testarr+sizeof(testarr)/sizeof(int));
 	Solution s;
 	
