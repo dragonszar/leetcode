@@ -37,26 +37,43 @@ public:
             if(numbers[i] + numbers[j] < target)
                 i++;
             else if(numbers[i] + numbers[j] > target)
-                j++;
+                j--;
             else
             {
                 low = numbers[i];
                 high = numbers[j];
+				break;	//Don't miss the break, or it will be looping forever
             }
         }
         vector<int> rst;
-        rst.push_back(distance(buf.begin(), find(buf.begin(), buf.end(), low)));
-        rst.push_back(distance(buf.begin(), find(buf.begin(), buf.end(), high)));
+		int ilow = distance(buf.begin(), find(buf.begin(), buf.end(), low)) + 1;
+
+		reverse_iterator<vector<int>::iterator> rev_begin (buf.end());	//Reverse pointer
+		reverse_iterator<vector<int>::iterator> rev_end (buf.begin());
+
+		int ihigh = distance(rev_end, find(rev_begin, rev_end, high))*(-1);	//The standard cpp way to find last
+		if(ilow<ihigh)	//Need to push the smaller index first, pay attention to the request
+		{
+			rst.push_back(ilow);
+			rst.push_back(ihigh);
+		}
+		else{
+			rst.push_back(ihigh);
+			rst.push_back(ilow);
+		}
+
         return rst;
     }
 };
 
+
+
 int _tmain(int argc, _TCHAR* argv[])
 {
-	int test[] = {2,1,9,4,4,56,90,3};
+	int test[] = {4,2,9,1,4,56,90,3, 0, 0, 0,0,0};
 	vector<int> tst;
 	vector<int> rst;
-	tst.assign(test, test+sizeof(test)/sizeof(int));
+	tst.assign(test, test+sizeof(test)/sizeof(int));	//Pointer can be treated as iterator
 	Solution s;
 	rst = s.twoSum(tst, 8);
 
