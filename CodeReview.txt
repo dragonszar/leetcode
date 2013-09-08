@@ -1,0 +1,112 @@
+
+=============Longest valid parentheses:
+http://yucoding.blogspot.com/2013/01/leetcode-question-46-longest-valid.html
+-----------
+class Solution {
+public:
+    int longestValidParentheses(string s) {
+        // Start typing your C/C++ solution below
+        // DO NOT write int main() function
+        if (s.size()<2) {return 0;}
+        stack<pair<char,int> > st;
+        int maxl=0;
+        int i=0;
+        int t=0;
+        while (i<s.size()){            
+            if (s[i]=='(') {st.push(make_pair(s[i],i));}
+            else{
+                if (st.empty())
+				{
+					t=i+1;	///The location to start over due to the extra closing
+				}
+                if (!st.empty()){
+                    pair<char,int> tmp = st.top();
+                    st.pop();
+                    if (tmp.first=='('){
+                        if (!st.empty())
+						{
+							maxl=max(maxl,(i-st.top().second));	///Has non closed opening, count the range: [last closed opening, current position]
+						} 
+                        else
+						{
+							maxl=max(maxl,i-t+1);	///No unclosed opening, count the range: (last invalid extra closing, current position]
+						}
+                    }
+                }        
+            }
+            i++;
+        }
+        return maxl;
+    }
+};
+-----------
+Actually there's no need to use stack<pair<char,int> >, only stack<int> is enough, because every char is a opening.
+The good point to use stack is to keep track of the positions of each opening, (not only the number of opening as in my branch), thus we can always only count the range of closed opening; the LIFO behaviour also make sure every opening will be considered without loosing track of them.
+
+=============================Word Search
+http://yucoding.blogspot.com/2013/02/leetcode-question-124-word-search.html
+------------------
+class Solution {
+public:
+ 
+    bool search(vector<vector<char> > &board, int i,int j,string str,vector<vector<bool> > &mask){
+        if (str.size()==0){return true;}
+        else{
+            if ((i>0)&&(board[i-1][j]==str[0])&&(mask[i-1][j]==false)){	///Three condition to try a adj cell (in the same sequence of the if condition), 1) adj cell exists 2) adj cell has matching letter 3) adj cell is not visited 
+                mask[i-1][j]=true;
+                if (search(board,i-1,j,str.substr(1),mask)){
+                    return true;
+                }
+                mask[i-1][j]=false;
+            }
+            if ((i<board.size()-1)&&(board[i+1][j]==str[0])&&(mask[i+1][j]==false)){
+                mask[i+1][j]=true;
+                if (search(board,i+1,j,str.substr(1),mask)){
+                    return true;
+                }
+                mask[i+1][j]=false;
+            }
+            if ((j>0)&&(board[i][j-1]==str[0])&&(mask[i][j-1]==false)){
+                mask[i][j-1]=true;
+                if (search(board,i,j-1,str.substr(1),mask)){
+                    return true;
+                }
+                mask[i][j-1]=false;
+            }
+            if ((j<board[0].size()-1)&&(board[i][j+1]==str[0])&&(mask[i][j+1]==false)){
+                mask[i][j+1]=true;
+                if (search(board,i,j+1,str.substr(1),mask)){	//pass in sub string, so that we don't need to keep track of the recursion depth, but always check against the first letter
+                    return true;
+                }
+                mask[i][j+1]=false;
+            }
+        }
+        return false;
+    }
+ 
+    bool exist(vector<vector<char> > &board, string word) {
+        // Start typing your C/C++ solution below
+        // DO NOT write int main() function
+        if (word.size()==0) {return false;}
+             
+        for (int i=0;i<board.size();i++){
+            for (int j=0;j<board[0].size();j++){
+                if (word[0]==board[i][j]){				///Only start a DFS when the first letter of the target is located.
+                    if (word.size()==1) {return true;}
+                    else{
+                        vector<vector<bool> > mask(board.size(),vector<bool>(board[0].size(),false));	///Need to clear or recycle the bool[][] at the beginning of evey DFS path
+                        mask[i][j]=true;
+                        if (search(board,i,j,word.substr(1),mask)){
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+};
+-------------------------
+1) Only start DFS when found the first letter of the target word.
+2) In start of each DFS, create a bool[][] to keep track of the visited cells, then in the each DFS step, only call recursion on unvisited adj cells, and maintain the map by only setting true when the cell is selected in the path.
+
