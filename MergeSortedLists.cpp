@@ -1,46 +1,51 @@
-/**
- * Definition for singly-linked list.
- * struct ListNode {
- *     int val;
- *     ListNode *next;
- *     ListNode(int x) : val(x), next(NULL) {}
- * };
- */
+
 class Solution {
 public:
+    class Comp
+    {
+        public:
+            bool operator()(const ListNode *st, const ListNode *ed) const
+            {
+                return (st->val - ed->val > 0); 
+            }
+    };
+
+
     ListNode *mergeKLists(vector<ListNode *> &lists) {
         // Start typing your C/C++ solution below
         // DO NOT write int main() function
-        
-        if(lists.size()==0)
-            return NULL;
 
-        ListNode *rst;
-        //ListNode *cur = *(lists.begin());   //Need to add *
-        vector<ListNode *>::iterator selected = lists.begin();
+        vector<ListNode*>::iterator it = lists.begin();
+    	while(it != lists.end()) {                      //Must remove the NULL element first
+			if(*it == NULL) lists.erase(it);
+			else ++it;
+		}
         
-        while(lists.size()>0){
-            for(vector<ListNode *>::iterator it = lists.begin(); it!=lists.end(); ++it)
+        if(lists.size() < 1) return NULL;       //Need to check after removing NULL element
+        
+        ListNode *head = NULL;
+        ListNode *cur = NULL;
+		vector<ListNode *>::iterator itst = lists.begin();
+		vector<ListNode *>::iterator ited = lists.end();
+        priority_queue<ListNode *, vector<ListNode *>, Comp> pq(itst, ited, Comp());    //Standard way to construct a priority queue from a vector
+        
+        while(pq.size() > 0)
+        {
+            if(head == NULL)
             {
-                if(*it == NULL || (*it)->val==NULL)
-                {
-                    lists.erase(it);
-                    continue;
-                }
-                    
-                if((*it)->val < (*selected)->val)
-                {
-                    selected = it;
-                }
-                    
+                head = pq.top();
+                cur = head;
             }
-            rst->next = *selected;
-            if((*selected)->next!=NULL)
-                *selected = (*selected)->next;
-            else
-                lists.erase(selected);
-        }    
-        rst = rst->next;
-        return rst;
+            else{
+                cur->next = pq.top();	//pop() will return void
+                cur = cur->next;  
+            }
+            pq.pop();	//Pop and re-insert to realize the increase key
+            if(cur->next!=NULL)
+                pq.push(cur->next);	//Need to push in the next node of the popped node
+        }
+		cur->next = NULL;
+        return head;
     }
+
 };
