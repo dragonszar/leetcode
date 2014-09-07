@@ -1,4 +1,4 @@
---
+---------------------
 Question: design a request rate detector which protect a REST service service from responding to any client with 1000/sec or higher.
 
 --
@@ -37,7 +37,48 @@ No. The detection need to happen right after the REST application retrieve the r
 We do not want to mess up with thread synchronnization, which is complex. 
 And also another CPU will not be able to accelerate the detection/processing because nothing can be paralellized here.
 
+-
+Do we need to a BST for each watching.get(curReq.Key)?
+No. BST is needed when elements come out of order, and BST will have a height equal to n if the elements come in order, which is our case.
+
+-
+Do we need a counter for each watching.get(curReq.Key)?
+No, ArrayList.size() is already a O(1) operation.
+
 --
 Learned:
 Always question ourself if a data structure is necessary, if not, it's harming. 
 To be able to do so, we need to understand what makes a data structure necessary, and keep our design target in mind.
+
+
+-----------------------------
+Question: Design a LSU cache, which swap/commit least used element out of cache when there's not enough space to hold a new element.
+
+HashMap<String, Object> cache = new HashMap<String, Object>();
+CacheItem GET(String key){	//application retrieve value with a key from the cache
+	IF (cache.get(key) == null){
+		CacheItem tar = new CacheItem(key, DB.read(key));
+		IF (cache.isFull() == false)
+			cache.PUT(tar);
+		ELSE{
+			CacheItem LSU = cache.getLSU();
+			if(LSU.isDirty)
+				DB.update(LSU);
+			cache.remove(LSU);
+			cache.PUT(tar);
+		}
+		return tar;
+	}ELSE{
+		return cache.get(key);
+	}
+}
+
+Class CacheItem{
+	String key;
+	Object value;
+	Boolean isDirty;
+	CacheItem(String k, Object v){key = k; value = v;}
+	
+}
+
+
