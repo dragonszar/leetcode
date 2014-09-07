@@ -52,33 +52,71 @@ To be able to do so, we need to understand what makes a data structure necessary
 
 
 -----------------------------
-Question: Design a LSU cache, which swap/commit least used element out of cache when there's not enough space to hold a new element.
+Question: Design a LRU cache, which swap/commit least used element out of cache when there's not enough space to hold a new element.
 
 HashMap<String, Object> cache = new HashMap<String, Object>();
+PriorityQueue<CacheItem> rankings = PriorityQueue<CacheItem>(); //*1
+
 CacheItem GET(String key){	//application retrieve value with a key from the cache
+	CacheItem tar;
 	IF (cache.get(key) == null){
-		CacheItem tar = new CacheItem(key, DB.read(key));
-		IF (cache.isFull() == false)
-			cache.PUT(tar);
-		ELSE{
-			CacheItem LSU = cache.getLSU();
-			if(LSU.isDirty)
-				DB.update(LSU);
-			cache.remove(LSU);
-			cache.PUT(tar);
+		tar = new CacheItem(key, DB.read(key));
+		IF (cache.isFull() == true){
+			CacheItem LRU = cache.getLRU();
+			if(LRU.isDirty)
+				DB.write(LRU);
+			cache.remove(LRU.key);
+			rankings.poll();
 		}
+		cache.PUT(tar);
 		return tar;
 	}ELSE{
-		return cache.get(key);
+		tar = cache.get(key);
 	}
+	
+	--Refesh ranking
+	tar.recent = System.now(); //*1
+	rankings.remove(tar); //*2
+	rankings.add(tar); //*2
+	
+	return tar;
 }
 
 Class CacheItem{
 	String key;
 	Object value;
-	Boolean isDirty;
+	Boolean isDirty = false;
+	TimeStamp recent;	//*1
 	CacheItem(String k, Object v){key = k; value = v;}
+	update(Object val){
+		value = val;
+		isDirty = true;
+	}
 	
+	Boolean compare(CacheItem c1, CacheItem c2){ //*1
+		if(c1.recent > c2.renct)
+			return c1;
+		else 
+			return c2;
+	}
 }
 
+As pseudo code above, we need to implement getLRU sub routine to return the LRU cache item.
 
+
+-*1
+The cache is already a HashMap, would need another data structure as below:
+PriorityQueue<CacheItem> rankings = PriorityQueue<CacheItem>();
+Where Priority queue is used so that we can retrieve the LRU in O(1).
+The CacheItem need to add a member to hold the timestamp when it's used most recently used, and CacheItem need to implement the comparable interface so that the cacheitem with older timestamp wiill win.
+
+-*2
+Refesh ranking when get a cache item; Java's map and priority queue do not support updating to inserted element, thus need to remove and insert again.
+
+-
+Did we wasted memory by storing each cache item twice in both hashmap and priority queue?
+No, we only new-ed CacheItem once for each, but its reference are stored twice.
+
+-
+Above is LRU cache, what about a LFU cahce?
+Just need to change the priority queue's timestamp to a counter and increase the counter when refresh ranking.
