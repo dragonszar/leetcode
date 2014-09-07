@@ -1,0 +1,43 @@
+--
+Question: design a request rate detector which protect a REST service service from responding to any client with 1000/sec or higher.
+
+--
+Data representations:
+	Request: Pair<String, Int>, which is the clientName to TimeStamp key-value pair
+
+--
+Solution:
+As first thing when RSET application retrieve a request (curReq) from web server (and before start to produce response), REST application will hash the client name to retrieve an array of time stamps (create array if not previously hashed):
+
+HashMap<ArrayList<Int>> watching = new HashMap<ArrayList<Int>>();
+
+Within this array, binary search for the (curReq.Value - 1000), find the index which is the youngest timestamp older than (curReq.Value - 1000), and remove all the element whose index is smaller than the found.
+If the watching.get(curReq.Key).size() is begger than 1000, stop responding to this request.
+
+--
+Bad thaughts:
+-
+Do we need a moving window which mimic the TCP congection control buffer?
+Actually no, the short answer is, there will be a buffer, but we do not care in this particular design.
+
+The REST service definitely need a queue/buffer so that we are not missing requests, and the web server has been doing that for us; 
+Or if we impletemented a web server as part of the application (like a TCP socket), and we queue the requests ourselves before generating response for it.
+
+But we detect the request rate AFTER web server schedule a request into the REST application, which means the buffering happened before our solution comming to play.
+
+-
+Do we need a priority queue (heap) or tournament tree, so that we rank the clients and pop off the highest ranking to warn the application?
+Absolutely no.
+
+A heap or tournament tree is only needed when we want to sort (only retrieve biggest) among clients, which is a over kill with unwanted memory and computation cost.
+
+-
+Do we need to run this request rate detection logic on another thread?
+No. The detection need to happen right after the REST application retrieve the request from buffer and before processing it. 
+We do not want to mess up with thread synchronnization, which is complex. 
+And also another CPU will not be able to accelerate the detection/processing because nothing can be paralellized here.
+
+--
+Learned:
+Always question ourself if a data structure is necessary, if not, it's harming. 
+To be able to do so, we need to understand what makes a data structure necessary, and keep our design target in mind.
