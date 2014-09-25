@@ -127,8 +127,17 @@ Question: Event-loop vs thread-pool
 
 How IIS/Apache working?
 A server socket is listening to a port/protocol, and blocked itself by calling accept method.
-When a three way hand shaking initiated by a client, a tcp connection is created and server socket unblock itself to spawn/reuse a thread and reference the socket returned by accept method.
-The create thread will remain alive until the connection is killed. (Browser does not keep connection open unless websocket is used.) Each request from browser initialize a new connection which is killed after served by server, which is short and state-less.
+When a three way hand shaking initiated by a client, a tcp connection is created and server socket unblock itself to spawn/reuse a thread and reference-into the socket returned by accept method.
+The created thread will remain alive until the connection is killed. (Browser does not keep connection open unless websocket is used and web server is configued to allow it.) 
+Each thread/connection is short and state-less for performance purpose.
+
+What's the main reason the web server has been using threads, why not use process?
+Thread mainly serve as a unit and boundary for web server to do life cycle management without forbidding memory sharing among threads:  upon arrivel of a request, a thread with no business object is created/reused, and it start to construct most of the business objects from  database query results (the engine class' init method in MVC), upon finishing of serving this request, web server delete all business ojects in the thread (or even delete the thread if not reused); but there can be objects alive for any time span or even alive as long as the application process running, and these objects can be shared among different threads(, but the shared memory need to be thread-safe where the complexity of multi-threading come to play.)
+The thread also provides concurrency (utilize multi-core, or timely interleave the same core to higher responsiveness) with higher memory effeciency, assuming there are thread safe objects shared by multiple threads, which can be a huge library. 
+
+What CANNOT be a excuse to use thread but not process?
+Create a logical boundary as well as accessibility among objects in memory: actually it's the OOP object capsulation who's providing the logical and security boundary, even single threaded JavaScript can do that.
+
 
 What is bad about web server?
 A living thread consume memory; (Connections also consume a little memory but can be ignored)
@@ -136,23 +145,21 @@ Switching between thread cost CPU;
 Have to do multi-threading sometimes, which requires experience and introduce complexity when maintain and testing;
 Initializing connection for each request is slow (not only because the hand shake, but also because the slow-start phase of the TCP)
 Web server cannot push data/event to client, has to be twisted tricks to make real-time application.  
-
-Why web server is doing that?
-To create a boundary among objects in memory, so that when we writing logic, we mostly programming against the memories belonging to (current request of) the current user. In most scenarios it's basic requirement from security complexity as well as security.
 Because one thread is required for each connection, and there cannot be too many threads, thus each connection is short (HTTP 1.0) and do not keep alive (though web server might keep connection alive as optimization when load is low).
+
 
 Do we always need the boundary of memory between requests?
 Actually we never need the "boundary of memory between requests", (but web server made the boundary this way with no choice, ) what we really need is a boundary between sessions ( or users at least ), the boundary between the requests of same session/user actually introduced complexity.
 
-Can we have keep-alive connection, bi-direction communication between browser and server? 
+Can we have keep-alive connection, bi-direction communication between browser and web server? 
 Yes, but we cannot use common sense web servers any more, instead, we will write socket applications:
-Keep the connection alive through a session, and only create new thread for a new session, and do not kill the thread until a session is done. (For example, a session start when a Pingpong game player enter a table and end when he quit) Sometime we even want to server multiple connections/sessions with one thread (say, multiple players in a volley ball game)
+Keep the connection alive through a session, and only create new thread for a new session, and do not kill the thread until a session is done. (For example, a session start when a single player game begin, and end on quit.) Sometime we even want to server multiple connections/sessions with one thread (say, multiple players in a volley ball game)
 
 What is bad about this cool socket based solution?
 It's even more intensive multi-threading, even more complex and hard to develop and debug then web server based applications.
 We also on our won to maintain the quality of service (monitoring heavy load and load balance, etc.)
 
-What if we do not what the complexity of socket programming, but still want the keep-alive connection, bi-direction communication between browser and server? 
+What if we do not want the complexity of socket programming, but still want the keep-alive connection, bi-direction communication between browser and server? 
 The event-loop based Njinx managed single-threaded event-driven nodeJS processes serving WebSocket. 
 
 One running NodeJs application is one single thread process, every request of different sessions of different user will be served by the same thread (no boundary in memory at all).
@@ -160,8 +167,14 @@ No complexity of multi-threading, but with some complexity of mingled objects/ev
 Huge advantage of productivity by using JavaScript.
 
 But what is bad about NodeJS then?
-Due to the lack of "boundary in memory", we will start to do multi-process every soon (if we do not want to keep too many users/sessions/groupOfSession in mind when programming).
-But multi-process consume memories by loading libraries for each process, which is previously loaded only once and shared among threads in multi-threading.
+The lack of security boundary in memory. 
+Cannot utilize multi-core if not multi-processing.
+Cannot share memory between processes, which means harder communications and more memory consumption.
+Cannot fully apply design parterns in OOP (which is not too bad).
+Lower responsiveness, anything long running will cause incomming request being ignored.
+
+Is NodeJS really that bad on all above perspectives? Maybe not:
+
 
 So, nature of the application and its requirement decides the technology we have to use. 
  
